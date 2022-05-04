@@ -1,0 +1,46 @@
+import { MongoClient, ObjectId } from "mongodb";
+import express from "express";
+//import cors from "cors";
+import Joi from "joi";
+import dotenv from "dotenv";
+import bcrypt from "bcrypt";
+
+const app = express();
+
+//app.use(cors());
+app.use(express.json());
+
+dotenv.config();
+
+const mongoClient = new MongoClient(process.env.MONGO_URL);
+let db= null;
+const promise = mongoClient.connect();
+promise.then(() => {
+  db = mongoClient.db("myWallet");
+});
+promise.catch((e) => console.log(e));
+
+app.post("/signup", async (req, res) => {
+  const body = req.body;
+
+  const schema = Joi.object({
+    name: Joi.string().required(),
+    email: Joi.string().email().required(),
+    password: Joi.string().pattern(/^[a-zA-Z]{3}[0-9]{2}$/).required()
+  })
+
+  const validation = schema.validate(body);
+
+  console.log(validation);
+
+  try {
+    const passwordHash = bcrypt.hashSync(body.password, 10);
+    await db.collection("signup").insertOne({...body, password: passwordHash});
+    res.sendStatus(201);
+  } catch(e) {
+    res.sendStatus(422);
+  }
+ 
+});
+
+app.listen(5000);
