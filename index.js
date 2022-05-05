@@ -4,6 +4,7 @@ import express from "express";
 import Joi from "joi";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+import { v4 as uuid } from "uuid";
 
 const app = express();
 
@@ -37,7 +38,7 @@ app.post("/sign-up", async (req, res) => {
     await db.collection("signup").insertOne({...body, password: passwordHash});
     res.sendStatus(201);
   } catch(e) {
-    res.sendStatus(422);
+    res.sendStatus(422); 
   }
  
 });
@@ -48,9 +49,13 @@ app.post("/sign-in", async (req, res) => {
   try {
     const user = await db.collection("signup").findOne({email});
     if (user && bcrypt.compareSync(password, user.password)) {
+      const token = uuid();
+
+      await db.collection("sessions").insertOne({userId: user._id, token});
+
       return res.sendStatus(201);
     } else {
-      return res.sendStatus(422);
+      return res.sendStatus(422); //user não encontrado
     }
   }catch(e) {
     res.sendStatus(500);
