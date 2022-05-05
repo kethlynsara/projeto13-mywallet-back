@@ -29,19 +29,26 @@ app.post("/sign-up", async (req, res) => {
   const schema = Joi.object({
     nome: Joi.string().required(),
     email: Joi.string().email().required(),
-    senha: Joi.string().pattern(/^[a-zA-Z]{3}[0-9]{2}$/).required()
+    senha1: Joi.number().required(),
+    senha2: Joi.number().required()
   })
 
   const validation = schema.validate(body);
 
+  if (validation.error || body.senha1 !== body.senha2) {
+    return res.status(422).send("Confira seus dados!");
+    
+  }
+
   try {
-    const senhaHash = bcrypt.hashSync(body.senha, 10);
+    const senhaHash = bcrypt.hashSync(body.senha1, 10);
+    delete body.senha1;
+    delete body.senha2;
     await db.collection("usuarios").insertOne({...body, senha: senhaHash});
     res.sendStatus(201);
   } catch(e) {
     res.status(500).send("Não foi possível cadastrar usuário"); 
-  }
- 
+  } 
 });
 
 app.post("/sign-in", async (req, res) => {
@@ -81,22 +88,27 @@ app.post("/registros", async (req, res) => {
 
   try {
     const { valor, descricao, tipo, token } = registro;
-    
+
     const sessao = await db.collection("sessoes").findOne({token});
 
     if (!sessao) {
-      res.status(401).send("Usuário não encontrado");
+      return res.status(401).send("Usuário não encontrado");
     }
 
-    await db.collection("registros").insertOne({valor, descricao, tipo, userId: sessao._id, data: dayjs().format('DD/MM')})
+    await db.collection("registros").insertOne({valor, descricao, tipo, userId: sessao._id, data: dayjs().format('DD/MM')});
 
     res.sendStatus(201);
   }catch(e) {
     res.status(500).send("Não foi possível fazer o registro");
   }
 
-})
+});
 
-
+// app.get("/registros", (req, res) => {
+//   const { authorization } = req.header;
+//   console.log(authorization)
+//   const token = authorization?.replace("Bearer", "");
+//   console.log(token);
+// });
 
 app.listen(5000);
