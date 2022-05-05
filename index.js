@@ -20,7 +20,8 @@ promise.then(() => {
 });
 promise.catch((e) => console.log(e));
 
-app.post("/signup", async (req, res) => {
+
+app.post("/sign-up", async (req, res) => {
   const body = req.body;
 
   const schema = Joi.object({
@@ -31,8 +32,6 @@ app.post("/signup", async (req, res) => {
 
   const validation = schema.validate(body);
 
-  console.log(validation);
-
   try {
     const passwordHash = bcrypt.hashSync(body.password, 10);
     await db.collection("signup").insertOne({...body, password: passwordHash});
@@ -41,6 +40,21 @@ app.post("/signup", async (req, res) => {
     res.sendStatus(422);
   }
  
+});
+
+app.post("/sign-in", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await db.collection("signup").findOne({email});
+    if (user && bcrypt.compareSync(password, user.password)) {
+      return res.sendStatus(201);
+    } else {
+      return res.sendStatus(422);
+    }
+  }catch(e) {
+    res.sendStatus(500);
+  }
 });
 
 app.listen(5000);
