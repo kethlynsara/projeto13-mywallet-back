@@ -1,5 +1,5 @@
-import { MongoClient, ObjectId } from "mongodb";
-import express, { response } from "express";
+import { MongoClient } from "mongodb";
+import express, { response} from "express";
 import cors from "cors";
 import Joi from "joi";
 import dayjs from "dayjs";
@@ -79,7 +79,6 @@ app.post("/registros", async (req, res) => {
   const registro = req.body;
   const { authorization } = req.headers;
   const token = authorization?.replace("Bearer", "").trim();
-  console.log(token);
 
   const registroSchema = Joi.object({
     valor: Joi.number().required(),
@@ -112,7 +111,8 @@ app.post("/registros", async (req, res) => {
         valor,
         descricao,
         tipo,
-        userId: sessao._id,
+        token,
+        userId: sessao.userId,
         data: dayjs().format("DD/MM"),
       });
 
@@ -122,11 +122,36 @@ app.post("/registros", async (req, res) => {
   }
 });
 
-// app.get("/registros", (req, res) => {
-//   const { authorization } = req.header;
-//   console.log(authorization)
-//   const token = authorization?.replace("Bearer", "");
-//   console.log(token);
-// });
+app.get("/registros", async (req, res) => {
+  const { authorization } = req.headers;
+  const token = authorization?.replace("Bearer", "").trim();
+
+  if (!token) {
+    return res.status(401).send("Token não encontrado");
+  }
+
+  try {
+    const sessao = await db.collection("sessoes").findOne({token});
+
+    if (!sessao) {
+      res.status(401).send("Sessão expirou!");
+    }
+
+    const usuario = await db.collection("usuarios").findOne({_id: sessao.userId});
+    const { nome } = usuario;
+    
+    if (usuario) {
+      const registros = await db.collection("registros").find({userId: sessao.userId}).toArray();
+      if (registros) {
+        return res.status(201).send([...registros, nome]);
+      } 
+    } else {
+      return res.status(401).send("Usuário não encontrado")
+    }   
+    
+  }catch(e) {
+    res.sendStatus(500);
+  }
+});
 
 app.listen(5000);
