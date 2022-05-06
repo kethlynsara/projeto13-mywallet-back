@@ -66,7 +66,7 @@ app.post("/sign-in", async (req, res) => {
 
       await db.collection("sessoes").insertOne({ userId: user._id, token });
 
-      return res.sendStatus(201);
+      return res.status(201).send(token);
     } else {
       return res.status(401).send("Usuário não encontrado"); //user não encontrado
     }
@@ -77,12 +77,14 @@ app.post("/sign-in", async (req, res) => {
 
 app.post("/registros", async (req, res) => {
   const registro = req.body;
+  const { authorization } = req.headers;
+  const token = authorization?.replace("Bearer", "").trim();
+  console.log(token);
 
   const registroSchema = Joi.object({
     valor: Joi.number().required(),
     descricao: Joi.string().required(),
     tipo: Joi.string().required(),
-    token: Joi.string().required(),
   });
 
   const validacao = registroSchema.validate(registro);
@@ -91,10 +93,14 @@ app.post("/registros", async (req, res) => {
     return res.status(422).send("Confira seus dados!");
   }
 
-  try {
-    const { valor, descricao, tipo, token } = registro;
+  if (!token) {
+    return res.status(401).send("Token inválido!");
+  }
 
-    const sessao = await db.collection("sessoes").findOne({ token });
+  try {
+    const { valor, descricao, tipo } = registro;
+
+    const sessao = await db.collection("sessoes").findOne({token});
 
     if (!sessao) {
       return res.status(401).send("Usuário não encontrado");
