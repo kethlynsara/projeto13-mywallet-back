@@ -2,27 +2,17 @@ import Joi from "joi";
 import dayjs from "dayjs";
 import db from "../db.js";
 
+import { registroSchema } from "../schemas/schemas.js";
+
 export async function postRegistros(req, res) {
   const registro = req.body;
   const { authorization } = req.headers;
   const token = authorization?.replace("Bearer", "").trim();
 
-  const registroSchema = Joi.object({
-    valor: Joi.string()
-      .pattern(/(^[0-9]+,[0-9]+$)|(^[0-9]+$)/)
-      .required(),
-    descricao: Joi.string().required(),
-    tipo: Joi.string().required(),
-  });
-
   const validacao = registroSchema.validate(registro);
 
   if (validacao.error) {
     return res.status(422).send("Confira seus dados!");
-  }
-
-  if (!token) {
-    return res.status(401).send("Token inválido!");
   }
 
   try {
@@ -52,10 +42,6 @@ export async function postRegistros(req, res) {
 export async function getRegistros(req, res) {
     const { authorization } = req.headers;
     const token = authorization?.replace("Bearer", "").trim();
-  
-    if (!token) {
-      return res.status(401).send("Token não encontrado");
-    }
   
     try {
       const sessao = await db.collection("sessoes").findOne({token});

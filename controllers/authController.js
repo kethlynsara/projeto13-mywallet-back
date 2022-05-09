@@ -3,17 +3,19 @@ import bcrypt from "bcrypt";
 import { v4 as uuid } from "uuid";
 import db from "../db.js";
 
+import { schemaSignUp } from "../schemas/schemas.js";
+
 export async function postSignUp(req, res) {
     const body = req.body;
 
-    const schema = Joi.object({
-      nome: Joi.string().required(),
-      email: Joi.string().email().required(),
-      senha1: Joi.number().required(),
-      senha2: Joi.number().required(),
-    });
+    // const schemaSignUp = Joi.object({
+    //   nome: Joi.string().required(),
+    //   email: Joi.string().email().required(),
+    //   senha1: Joi.number().required(),
+    //   senha2: Joi.number().required(),
+    // });
   
-    const validation = schema.validate(body);
+    const validation = schemaSignUp.validate(body);
   
     if (validation.error || body.senha1 !== body.senha2) {
       return res.status(422).send("Confira seus dados!");

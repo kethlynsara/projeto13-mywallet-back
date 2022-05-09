@@ -7,7 +7,7 @@ const mongoClient = new MongoClient(process.env.MONGO_URL);
 
 try {
     await mongoClient.connect();
-    db = mongoClient.db("myWallet");
+    db = mongoClient.db(process.env.BANCO);
 }catch(error) {
     console.log(error);
 }
