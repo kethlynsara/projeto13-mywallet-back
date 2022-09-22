@@ -17,7 +17,11 @@ export async function postSignUp(req, res) {
   
     const validation = schemaSignUp.validate(body);
   
-    if (validation.error || body.senha1 !== body.senha2) {
+    if (validation.error) {
+      return res.status(400).send("Wrong validation");
+    }
+
+    if (body.senha1 !== body.senha2) {
       return res.status(422).send("Confira seus dados!");
     }
   
