@@ -14,6 +14,4 @@ dotenv.config();
 app.use(authRouter);
 app.use(registrosRouter);
 
-app.listen(5000, () => {
-    console.log(`Server is up and running on port 5000`);
-});
+app.listen(5000);
