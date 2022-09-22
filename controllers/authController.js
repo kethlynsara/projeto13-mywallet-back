@@ -8,22 +8,11 @@ import { schemaSignUp } from "../schemas/schemas.js";
 export async function postSignUp(req, res) {
     const body = req.body;
 
-    // const schemaSignUp = Joi.object({
-    //   nome: Joi.string().required(),
-    //   email: Joi.string().email().required(),
-    //   senha1: Joi.number().required(),
-    //   senha2: Joi.number().required(),
-    // });
-  
     const validation = schemaSignUp.validate(body);
-  
-    if (validation.error) {
-      return res.status(400).send("Wrong validation");
-    }
 
-    if (body.senha1 !== body.senha2) {
+    if (validation.error || body.senha1 !== body.senha2) {
       return res.status(422).send("Confira seus dados!");
-    }
+    }    
   
     try {
       const usuario = await db.collection("usuarios").findOne({ email: body.email });

@@ -3,8 +3,8 @@ import Joi from "joi";
 export const schemaSignUp = Joi.object({
     nome: Joi.string().required(),
     email: Joi.string().email().required(),
-    senha1: Joi.number().required(),
-    senha2: Joi.number().required(),
+    senha1: Joi.string().alphanum().min(6).required(),
+    senha2: Joi.ref("senha1")
 });
 
 export const registroSchema = Joi.object({
