@@ -14,4 +14,6 @@ dotenv.config();
 app.use(authRouter);
 app.use(registrosRouter);
 
-app.listen(5000);
+app.listen(process.env.PORT, () => {
+    console.log("Server running on port " + process.env.PORT);
+});
