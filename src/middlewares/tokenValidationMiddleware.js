@@ -6,6 +6,8 @@
         return res.status(401).send("Token inválido!");
     }
 
+    res.locals.token = token;
+
     next();
 }
 
